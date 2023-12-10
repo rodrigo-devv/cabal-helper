@@ -2,6 +2,7 @@ import os
 import time
 import yaml
 import keyboard
+import platform
 import threading
 import datetime
 from tkinter import *
@@ -232,7 +233,7 @@ def sub_handle(sub=None):
     window = gameWindow[0].rect
     # Verifica se a janela da sub-senha esta aberta
     sub_window = uT.imgSearch(
-        window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+        window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.90, raw=True)
 
     if sub_window:
         time.sleep(0.3)
@@ -318,15 +319,6 @@ def testes():
     logger("💻 Test acionado")
     time.sleep(1)
 
-    window = gameWindow[0].rect
-    img_found = uT.imgSearch(
-        window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
-    if img_found:
-        INP.moveMouse(img_found[0], img_found[1])
-    else:
-        print("Não encontrada")
-    time.sleep(1)
-
 
 if __name__ == '__main__':
     keyboard.add_hotkey('f10', toggle_attack)  # HOTKEY Toggle Attack
@@ -337,4 +329,4 @@ if __name__ == '__main__':
 
     # Inicia as threads
     threading.Thread(target=watchdog, args=()).start()
-    # testes()
+    testes()

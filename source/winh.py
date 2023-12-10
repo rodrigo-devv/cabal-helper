@@ -1,4 +1,5 @@
 from win32 import win32gui
+import platform
 import win32con
 import pydirectinput as pdt
 import time
@@ -50,26 +51,30 @@ class gWindow:
         win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
         self.winRect()
 
-        # Etapa 2: Maximizar a janela
-        win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
-        # Aguardar um segundo para garantir que a janela seja maximizada completamente
-        time.sleep(0.1)
+        version_info = platform.version()
 
-        # Etapa 3: Restaurar a janela para o tamanho original
-        win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
-        self.activeWindow()
-        win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
-        self.winRect()
+        # Verifica se é o Windows 11
+        if not "10.0.22621" in version_info:
+            # Etapa 2: Maximizar a janela
+            win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+            # Aguardar um segundo para garantir que a janela seja maximizada completamente
+            time.sleep(0.1)
 
-        # Etapa 4: Maximizar a janela novamente
-        win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
-        time.sleep(0.1)  # Aguardar novamente
+            # Etapa 3: Restaurar a janela para o tamanho original
+            win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+            self.activeWindow()
+            win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
+            self.winRect()
 
-        # Etapa 5: Restaurar a janela para o tamanho original
-        win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
-        self.activeWindow()
-        win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
-        self.winRect()
+            # Etapa 4: Maximizar a janela novamente
+            win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+            time.sleep(0.1)  # Aguardar novamente
+
+            # Etapa 5: Restaurar a janela para o tamanho original
+            win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+            self.activeWindow()
+            win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
+            self.winRect()
 
 
 def find_all_windows(name):
