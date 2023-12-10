@@ -1,12 +1,15 @@
 import os
+import ctypes
+import sys
 import time
 import yaml
 import keyboard
 import platform
 import threading
 import datetime
-from tkinter import *
-from gui import start_gui
+from customtkinter import *
+from interface import run_gui
+
 import pydirectinput as pdi
 
 import source.uTools as uT
@@ -15,9 +18,11 @@ import source.dataInfo as data_info
 
 from source.logger import logger
 from source.inputs import Inputs as INP
-from config import config, attack_observer
+from config import config, attack_observer, CountdownConfig
 from source.winh import gWindow, find_all_windows, is_window_foreground
 
+set_appearance_mode("dark")
+set_default_color_theme("dark-blue")
 global run
 run = False
 gameWindow = config.windows
@@ -25,11 +30,29 @@ configuration = None
 countdown_instance = None
 
 
+def run_as_admin():
+    try:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    except ctypes.WinError as e:
+        # Se o usuário cancelar a solicitação de privilégios de administrador,
+        # a exceção ERROR_CANCELLED será levantada. Você pode lidar com isso conforme necessário.
+        print(f"Erro: {e}")
+
+
 def carregar_config():
     global configuration
     global countdown_instance
+
+    # Obtém o diretório do script em execução
+    script_dir = getattr(
+        sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+    # Constrói o caminho para o arquivo config.yaml
+    config_path = os.path.join(script_dir, "config.yaml")
+
     try:
-        with open("config.yaml", "r") as arquivo_config:
+        with open(config_path, "r") as arquivo_config:
             configuration = yaml.safe_load(arquivo_config)
 
             # Verifica se a seção "countdown" está presente no config.yaml
@@ -42,9 +65,10 @@ def carregar_config():
                 # Inicializa a instância do Countdown
                 countdown_instance = Countdown(
                     hours, minutes, seconds, on_zero_callback)
-
     except FileNotFoundError:
-        print("Arquivo de configuração não encontrado.")
+        # Tratar a exceção se o arquivo config.yaml não for encontrado
+        print("Arquivo config.yaml não encontrado.")
+
         configuration = None
 
 
@@ -55,6 +79,9 @@ class Countdown:
         self.run_countdown = True
         self.countdown_thread = threading.Thread(target=self._start_countdown)
         self.countdown_thread.start()
+
+        # Atualiza o CountdownConfig com os valores iniciais
+        self.update_config()
 
     def _start_countdown(self):
         while self.run_countdown and self.total_seconds > 0:
@@ -72,8 +99,20 @@ class Countdown:
         self.countdown_thread = threading.Thread(target=self._start_countdown)
         self.countdown_thread.start()
 
+        # Atualiza o CountdownConfig ao reiniciar o Countdown
+        self.update_config()
+
     def stop_countdown(self):
         self.run_countdown = False
+
+    def get_time_str(self):
+        timer = datetime.timedelta(seconds=self.total_seconds)
+        return str(timer).split(".")[0]  # Remove os milissegundos
+
+    def update_config(self):
+        # Atualiza os valores no CountdownConfig do config.py
+        CountdownConfig.set_countdown(
+            self.total_seconds // 3600, (self.total_seconds % 3600) // 60, self.total_seconds % 60)
 
 
 def on_zero_callback():
@@ -156,7 +195,7 @@ def relog():
         INP.sendKey("o")
         time.sleep(1)
         menu_open = uT.imgSearch(gameWindow[0].rect, data_info.MENU_TEXT,
-                                 data_info.MENU_AREA, threshold=0.90, raw=True)
+                                 data_info.MENU_AREA, threshold=0.80, raw=True)
         if menu_open:
             INP.click("l", [514, 360])  # SELECIONAR SERVIDOR
             time.sleep(0.5)
@@ -321,12 +360,18 @@ def testes():
 
 
 if __name__ == '__main__':
-    keyboard.add_hotkey('f10', toggle_attack)  # HOTKEY Toggle Attack
-    keyboard.add_hotkey('f12', pause_app)  # HOTKEY Pausar
-    keyboard.add_hotkey('ctrl+alt+shift', break_app)  # HOTKEY Fechar
+    keyboard.add_hotkey('f10', toggle_attack)
+    keyboard.add_hotkey('f12', pause_app)
+    keyboard.add_hotkey('ctrl+alt+shift', break_app)
+
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        run_as_admin()
+
     find_windows()
     carregar_config()
 
-    # Inicia as threads
+    # gui_thread = threading.Thread(target=run_gui)
+    # gui_thread.start()
+
     threading.Thread(target=watchdog, args=()).start()
-    testes()
+    # testes()

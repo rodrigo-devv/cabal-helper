@@ -1,10 +1,18 @@
 from source.date import dateFormatted
-
 import sys
+import os
 import yaml
 
-stream = open("./config.yaml", 'r')
-c = yaml.safe_load(stream)
+# Obtém o diretório do script em execução
+script_dir = getattr(sys, '_MEIPASS', os.path.dirname(
+    os.path.abspath(sys.argv[0])))
+
+# Constrói o caminho para o arquivo config.yaml
+config_path = os.path.join(script_dir, "config.yaml")
+
+# Abre o arquivo config.yaml
+with open(config_path, 'r') as stream:
+    c = yaml.safe_load(stream)
 
 last_log_is_progress = False
 
@@ -20,6 +28,10 @@ COLOR = {
     'white': '\033[97m',
     'red': '\033[91m'
 }
+
+# Constrói o caminho para o arquivo de log
+log_dir = os.path.join(script_dir, "logs")
+os.makedirs(log_dir, exist_ok=True)  # Cria o diretório se não existir
 
 
 def logger(message, progress_indicator=False, color='default'):
@@ -52,7 +64,8 @@ def logger(message, progress_indicator=False, color='default'):
     print(formatted_message_colored)
 
     if c['save_log_to_file']:
-        logger_file = open("./logs/logger.log", "a", encoding='utf-8')
+        log_file_path = os.path.join(log_dir, "logger.log")
+        logger_file = open(log_file_path, "a", encoding='utf-8')
         logger_file.write(formatted_message + '\n')
         logger_file.close()
 
@@ -61,6 +74,7 @@ def logger(message, progress_indicator=False, color='default'):
 
 def loggerMapClicked():
     logger('🗺️ New Map button clicked!')
-    logger_file = open("./logs/new-map.log", "a", encoding='utf-8')
+    log_file_path = os.path.join(log_dir, "new-map.log")
+    logger_file = open(log_file_path, "a", encoding='utf-8')
     logger_file.write(dateFormatted() + '\n')
     logger_file.close()

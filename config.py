@@ -46,4 +46,20 @@ class Config:
         _windows = value
 
 
+class CountdownConfig:
+    hours = 0
+    minutes = 0
+    seconds = 0
+
+    @classmethod
+    def set_countdown(cls, h, m, s):
+        cls.hours = h
+        cls.minutes = m
+        cls.seconds = s
+
+    @classmethod
+    def get_countdown(cls):
+        return cls.hours, cls.minutes, cls.seconds
+
+
 config = Config()

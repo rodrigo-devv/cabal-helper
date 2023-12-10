@@ -1,8 +1,8 @@
 from collections import namedtuple
 from os import listdir
 import cv2 as cv
-
-global images
+import sys
+import os
 
 
 def remove_suffix(input_string, suffix):
@@ -11,11 +11,19 @@ def remove_suffix(input_string, suffix):
     return input_string
 
 
-def load_images(dir_path='./images/'):
-    file_names = listdir(dir_path)
+def load_images(dir_path='images'):
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Use o diretório temporário do executável PyInstaller
+        images_dir = os.path.join(sys._MEIPASS, dir_path)
+    else:
+        # Caso contrário, use o diretório do script atual
+        script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        images_dir = os.path.join(script_dir, dir_path)
+
+    file_names = listdir(images_dir)
     targets = {}
     for file in file_names:
-        path = 'images/' + file
+        path = os.path.join(images_dir, file)
         targets[remove_suffix(file, '.png')] = cv.imread(path)
 
     return targets
