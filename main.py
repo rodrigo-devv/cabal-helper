@@ -1,0 +1,340 @@
+import os
+import time
+import yaml
+import keyboard
+import threading
+import datetime
+from tkinter import *
+from gui import start_gui
+import pydirectinput as pdi
+
+import source.uTools as uT
+import source.actions as Action
+import source.dataInfo as data_info
+
+from source.logger import logger
+from source.inputs import Inputs as INP
+from config import config, attack_observer
+from source.winh import gWindow, find_all_windows, is_window_foreground
+
+global run
+run = False
+gameWindow = config.windows
+configuration = None
+countdown_instance = None
+
+
+def carregar_config():
+    global configuration
+    global countdown_instance
+    try:
+        with open("config.yaml", "r") as arquivo_config:
+            configuration = yaml.safe_load(arquivo_config)
+
+            # Verifica se a seção "countdown" está presente no config.yaml
+            if "countdown" in configuration:
+                countdown_config = configuration["countdown"]
+                hours = countdown_config.get("hours", 0)
+                minutes = countdown_config.get("minutes", 0)
+                seconds = countdown_config.get("seconds", 0)
+
+                # Inicializa a instância do Countdown
+                countdown_instance = Countdown(
+                    hours, minutes, seconds, on_zero_callback)
+
+    except FileNotFoundError:
+        print("Arquivo de configuração não encontrado.")
+        configuration = None
+
+
+class Countdown:
+    def __init__(self, h, m, s, on_zero_callback):
+        self.total_seconds = h * 3600 + m * 60 + s
+        self.on_zero_callback = on_zero_callback
+        self.run_countdown = True
+        self.countdown_thread = threading.Thread(target=self._start_countdown)
+        self.countdown_thread.start()
+
+    def _start_countdown(self):
+        while self.run_countdown and self.total_seconds > 0:
+            timer = datetime.timedelta(seconds=self.total_seconds)
+            print(">", timer, " ⏱️", end="\r")
+            time.sleep(1)
+            self.total_seconds -= 1
+
+        if self.total_seconds <= 0:
+            self.on_zero_callback()
+
+    def restart_countdown(self, h, m, s):
+        self.total_seconds = h * 3600 + m * 60 + s
+        self.run_countdown = True
+        self.countdown_thread = threading.Thread(target=self._start_countdown)
+        self.countdown_thread.start()
+
+    def stop_countdown(self):
+        self.run_countdown = False
+
+
+def on_zero_callback():
+    global run
+    run = True
+
+
+def find_windows(debug=False):
+    try:
+        ptWindows = find_all_windows("CABAL")
+        if not ptWindows:
+            raise Exception("Nenhuma janela do jogo foi encontrada.")
+
+        for i in range(0, len(ptWindows)):
+            gameWindow.append(gWindow(ptWindows[i]))
+            if debug:
+                print("EXE:", gameWindow[i].hwnd, '-', gameWindow[i].winRect())
+
+        if gameWindow[0].w != 1024 or gameWindow[0].h != 768 or gameWindow[0].rect[0] != 0 or gameWindow[0].rect[1] != 0:
+            gameWindow[0].resizeWindow()
+
+    except Exception as e:
+        print(f"Erro: {e}")
+        break_app(e)
+
+
+def watchdog():
+    logged = False
+    while True:
+        time.sleep(1)
+        if run:
+            if logged:
+                logged = False
+            logger("🚨 Bot: reloging")
+        else:
+            if not logged:
+                logger("🚨 Bot: idle")
+                logged = True
+
+        while run:
+            game_info = gameWindow[0].win_info()
+            if game_info[0] or game_info[1]:
+                gameWindow[0].resizeWindow()
+            if is_window_foreground(gameWindow[0].hwnd) != True:
+                gameWindow[0].activeWindow()
+            time.sleep(0.3)
+            relog()
+
+
+def toggle_attack():
+    if run:
+        config.attack = not config.attack
+        config.resumeAttack = not config.resumeAttack
+    else:
+        if config.attack:
+            logger("⚔️ Ataque pausado")
+        print("🚨 Watchdog está pausado. Ative antes de atacar.")
+
+
+def pause_app():
+    global run
+    run = not run  # Alternar o valor de 'run' entre True e False
+
+
+def break_app(exception=None):
+    if exception:
+        logger(('🛑 Bot stoped... Reason: ' + str(exception)), color="red")
+
+    else:
+        logger('🛑 Stopping bot', color="red")
+    os._exit(0)
+
+
+def relog():
+    global countdown_instance
+    global run
+    relogado = False
+    while not relogado:
+        time.sleep(0.5)
+        INP.sendKey("o")
+        time.sleep(1)
+        menu_open = uT.imgSearch(gameWindow[0].rect, data_info.MENU_TEXT,
+                                 data_info.MENU_AREA, threshold=0.95, raw=True)
+        if menu_open:
+            INP.click("l", [514, 360])  # SELECIONAR SERVIDOR
+            time.sleep(0.5)
+            INP.click("l", [530, 473])
+
+            while not relogado:
+                time.sleep(0.1)
+                entrar_btn = uT.imgSearch(gameWindow[0].rect, data_info.ENTRAR_BTN,
+                                          data_info.RELOG_BTNS, threshold=0.95, raw=True)
+                if entrar_btn:
+                    INP.click("l", [946, 727])  # CLICA NO BTN ENTRAR
+
+                    while not relogado:
+                        time.sleep(0.1)
+                        character_screen = uT.imgSearch(gameWindow[0].rect, data_info.CHARACTER_LOCK,
+                                                        data_info.CHARACTER_LOCK_AREA, threshold=0.93, raw=True)
+                        if character_screen:
+                            INP.click("l", [946, 727])  # CLICA COMECAR
+                            time.sleep(1)
+                            if not sub_handle():
+                                return False
+
+                            while not relogado:
+                                time.sleep(0.1)
+                                login_confirm = uT.imgSearch(gameWindow[0].rect, data_info.MAIN_GEM,
+                                                             data_info.MAIN_BOTTOM_RIGHT_BAR, threshold=0.95, raw=True)
+                                if login_confirm:
+                                    # CLICA NA ABA 2
+                                    INP.click("l", [339, 666])
+                                    INP.sendKey("f4")
+
+                                    while not relogado:
+                                        time.sleep(0.5)
+                                        INP.sendKey("m")
+                                        time.sleep(0.5)
+                                        map_confirm = uT.imgSearch(gameWindow[0].rect, data_info.MAP_TEXT,
+                                                                   gameWindow[0].rect, threshold=0.95, raw=True)
+                                        if map_confirm:
+                                            search_rect = [
+                                                map_confirm[0] - 130, map_confirm[1] + 124, map_confirm[0] + 112, map_confirm[1] + 215]
+                                            while not relogado:
+                                                time.sleep(0.1)
+                                                teleport_find = uT.imgSearch(gameWindow[0].rect, data_info.TELEPORT_ICON,
+                                                                             search_rect, threshold=0.95, raw=True)
+                                                if teleport_find:
+                                                    INP.click(
+                                                        "l", [teleport_find[0], teleport_find[1]])
+                                                    relogado = True
+                                                    break
+    time.sleep(1)
+    INP.mouse_drag([200, 545], [150, 455], 0.2, 25)
+    INP.sendKey("z")
+    time.sleep(0.2)
+    INP.sendKey("f1")
+    # Verifica se há uma instância de Countdown e se a configuração está carregada
+    if countdown_instance and configuration and "countdown" in configuration:
+        countdown_config = configuration["countdown"]
+        hours = countdown_config.get("hours", 1)
+        minutes = countdown_config.get("minutes", 0)
+        seconds = countdown_config.get("seconds", 0)
+
+        # Cria uma nova instância de Countdown com os valores do arquivo de configuração
+        countdown_instance.restart_countdown(hours, minutes, seconds)
+    else:
+        # Caso a configuração não esteja disponível, use os valores padrão
+        countdown_instance = Countdown(1, 0, 0, on_zero_callback)
+    logger("🤓 Relogado")
+    run = False
+    return True
+
+
+def sub_handle(sub=None):
+    global configuration
+    window = gameWindow[0].rect
+    # Verifica se a janela da sub-senha esta aberta
+    sub_window = uT.imgSearch(
+        window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+
+    if sub_window:
+        time.sleep(0.3)
+        logger("🔑 Inserindo sub-senha")
+
+        sub_done = False
+
+        if sub is None:
+            if configuration and "user_sub" in configuration:
+                sub = configuration["user_sub"]
+            else:
+                print("Senha não encontrada no arquivo de configuração.")
+                return False
+
+        # Verifica se ja existe algum numero digitado. caso tenha, sera apagado.
+        sub_digited = uT.imgSearch(
+            window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+        if sub_digited:
+            fail_safe = 0
+            while True:
+                time.sleep(0.1)
+                INP.click("l", [628, 447])
+                check_sub_input = uT.imgSearch(
+                    window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+                if not check_sub_input:
+                    break
+                fail_safe += 1
+                if fail_safe >= 100:
+                    break
+        for digito_str in sub:
+            numero_atual = data_info.BUTTONS.get(digito_str, None)
+
+            if numero_atual is not None:
+                try:
+                    number_found = uT.imgSearch(
+                        window, numero_atual, data_info.SUB_PAD_AREA, threshold=0.90, raw=True)
+
+                    if number_found and number_found[0]:
+                        INP.click("l", [number_found[0], number_found[1]])
+                        time.sleep(0.3)
+                    else:
+                        print(f"Número {digito_str} não encontrado.")
+                except Exception as e:
+                    print(f"Erro ao buscar o número {digito_str}: {e}")
+            else:
+                print(
+                    f"Imagem do botão {digito_str} não encontrada na estrutura de dados.")
+    else:
+        return True
+
+    while not sub_done:
+        sub_window = uT.imgSearch(
+            window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+
+        if sub_window:
+            sub_digited = uT.imgSearch(
+                window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+            if sub_digited:
+                INP.click("l", [455, 505])
+                time.sleep(1)
+                while not sub_done:
+                    sub_window = uT.imgSearch(
+                        window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+
+                    if sub_window:
+                        sub_digited = uT.imgSearch(
+                            window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+
+                        if not sub_digited:
+                            logger(
+                                "🟥 Senha incorreta, ou digitada incorretamente. Parando BOT")
+                            pause_app()
+                            return False
+                        break
+                    else:
+                        sub_done = True
+                        logger("🚨 Sub-senha digitada com sucesso.")
+                        return True
+                        break
+
+
+def testes():
+    logger("💻 Test acionado")
+    time.sleep(1)
+
+    window = gameWindow[0].rect
+    img_found = uT.imgSearch(
+        window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+    if img_found:
+        INP.moveMouse(img_found[0], img_found[1])
+    else:
+        print("Não encontrada")
+    time.sleep(1)
+
+
+if __name__ == '__main__':
+    keyboard.add_hotkey('f10', toggle_attack)  # HOTKEY Toggle Attack
+    keyboard.add_hotkey('f12', pause_app)  # HOTKEY Pausar
+    keyboard.add_hotkey('ctrl+alt+shift', break_app)  # HOTKEY Fechar
+    find_windows()
+    carregar_config()
+
+    # Inicia as threads
+    threading.Thread(target=watchdog, args=()).start()
+    # testes()
