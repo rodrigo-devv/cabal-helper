@@ -155,7 +155,7 @@ def relog():
         INP.sendKey("o")
         time.sleep(1)
         menu_open = uT.imgSearch(gameWindow[0].rect, data_info.MENU_TEXT,
-                                 data_info.MENU_AREA, threshold=0.95, raw=True)
+                                 data_info.MENU_AREA, threshold=0.90, raw=True)
         if menu_open:
             INP.click("l", [514, 360])  # SELECIONAR SERVIDOR
             time.sleep(0.5)
