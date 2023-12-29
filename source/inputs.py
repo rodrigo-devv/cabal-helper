@@ -7,13 +7,12 @@ from config import config
 from win32 import win32api
 from win32.lib import win32con as wcon
 
-
 window = config.windows
 
 
 class Inputs:
     @classmethod
-    def click(cls, btn, coord, downTime=0.1, debug=False):
+    def click(cls, btn, coord, downTime=0.1, debug=False, fast=False):
         xC = coord[0]
         yC = coord[1]
         cls.moveMouse(xC, yC, r=0)
@@ -27,7 +26,9 @@ class Inputs:
             win32api.mouse_event(wcon.MOUSEEVENTF_RIGHTDOWN, 0, 0)
             time.sleep(downTime)
             win32api.mouse_event(wcon.MOUSEEVENTF_RIGHTUP, 0, 0)
-        time.sleep(0.2)
+
+        if not fast:
+            time.sleep(0.2)
 
     @classmethod
     def moveMouse(cls, x, y, r=0):

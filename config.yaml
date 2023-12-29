@@ -1,13 +1,14 @@
-# [pt_BR] Opção para setar o tempo que deseja para cada relog
-countdown:
-  hours: 1
-  minutes: 0
-  seconds: 0
-
-# [pt_BR] Sub senha in-game para o bot colocar automaticamente
-user_sub: "1548"
-
-# [pt_BR] Opção para salvar os logs em arquivo (logs.txt)
-# Valor padrão : False
-# Opções disponíveis: False ou True
+channel: 1
+countdown: {hours: 0, minutes: 30, seconds: 0}
 save_log_to_file: true
+user_sub: '1548'
+warps:
+- [450, 145]
+- [308, 191]
+- [288, 282]
+- [372, 301]
+- [391, 244]
+- [485, 331]
+- [495, 292]
+- [505, 432]
+- [434, 424]

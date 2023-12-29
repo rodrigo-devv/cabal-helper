@@ -35,13 +35,19 @@ Path = namedtuple('Path', 'OFFSET NAME')
 ColorPixel = namedtuple('ColorPixel', Pixel._fields + ('color',))
 Area = namedtuple('Area', 'left top right bottom')
 Bars = namedtuple('Bars', 'x1 y1 x2 y2 color')
+Coordinate = namedtuple('Coordinate', 'x y')
 
 # AREAS
 MENU_AREA = Area(456, 255, 556, 314)
+MENU_AREA_HD = Area(720, 332, 1179, 704)  # 1920-1080
+CHANNEL_WAR_AREA = Area(763, 428, 1150, 490)  # 1920-1080
+CHANNEL_LIST_AREA = Area(765, 430, 975, 600)  # 1920-1080
 CAPTCHA_AREA = Area(709, 554, 1014, 677)
 RELOG_BTNS = Area(760, 675, 1012, 757)
 CHARACTER_LOCK_AREA = Area(694, 34, 1013, 234)
 MAIN_BOTTOM_RIGHT_BAR = Area(716, 649, 1016, 761)
+MAIN_BOTTOM_RIGHT_BAR_HD = Area(1720, 970, 1785, 1020)  # 1920-1080
+MAIN_LOADING_BAR_HD = Area(640, 850, 1280, 1000)  # 1920-1080
 BAR_HP = Bars(332, 831, 333, 924, 'FF3033')
 
 # KEYS
@@ -53,17 +59,23 @@ S_BUFF5 = "f8"
 
 # IMAGES
 MENU_TEXT = images['option_menu']
+MENU_CANAL = images['canal_menu']
+MENU_CANAL_CONFIRM = images['canal_menu_confirm']
+CHANNEL_WAR_TEXT = images['canal_war']
+CHANNEL_WAR_TEXT_RED = images['canal_war_red']
 MAP_TEXT = images['map_text']
+MAP_TEXT_HD = images['map_text_hd']
+MAP_CUSTOM_WARP = images['map_warp']
 CAPTCHA_TITLE = images['captchaTitle']
 CAPTCHA_BTN = images['captchaOk']
 ENTRAR_BTN = images['entrar_btn']
 CHARACTER_LOCK = images['character_lock']
 MAIN_GEM = images['main_screen_gem']
+LOADING_BAR_FULL = images['loading_bar_full']
 TELEPORT_ICON = images['teleport_icon']
 TESTE = images['teste']
 
 # SUB-SENHA
-WRONG_AREA = Area(177, 51, 993, 161)
 SUB_PAD_AREA = Area(304, 220, 707, 567)
 
 # SUB IMAGES
@@ -97,14 +109,58 @@ BUTTONS = {
 # PINPOINT
 PIXEL_POINT_EXAMPLE = Pixel(516, 908)  # 0F0F0F Red color #FF3033
 
-EXAMPLE1 = Pixel(1492, 779)
-EXAMPLE2 = Pixel(1492, 864)
-EXAMPLE3 = Pixel(1573, 864)
-EXAMPLE4 = Pixel(1573, 779)
 
-MAP_PIXELS_LIBRARY = [
-    EXAMPLE1,
-    EXAMPLE2,
-    EXAMPLE3,
-    EXAMPLE4
+CHANNEL_1_COORD = Coordinate(950, 455)
+CHANNEL_2_COORD = Coordinate(950, 480)
+CHANNEL_3_COORD = Coordinate(950, 505)
+CHANNEL_4_COORD = Coordinate(950, 530)
+CHANNEL_5_COORD = Coordinate(950, 555)
+CHANNEL_6_COORD = Coordinate(950, 580)
+CHANNEL_7_COORD = Coordinate(950, 605)
+CHANNEL_8_COORD = Coordinate(950, 630)
+CHANNEL_9_COORD = Coordinate(950, 655)
+CHANNEL_10_COORD = Coordinate(950, 480)
+CHANNEL_11_COORD = Coordinate(950, 505)
+CHANNEL_12_COORD = Coordinate(950, 530)
+CHANNEL_13_COORD = Coordinate(950, 555)
+CHANNEL_14_COORD = Coordinate(950, 580)
+CHANNEL_15_COORD = Coordinate(950, 605)
+CHANNEL_16_COORD = Coordinate(950, 630)
+CHANNEL_17_COORD = Coordinate(950, 655)
+CHANNEL_18_COORD = Coordinate(950, 480)
+CHANNEL_19_COORD = Coordinate(950, 505)
+CHANNEL_20_COORD = Coordinate(950, 530)
+CHANNEL_21_COORD = Coordinate(950, 555)
+CHANNEL_22_COORD = Coordinate(950, 580)
+CHANNEL_23_COORD = Coordinate(950, 605)
+CHANNEL_24_COORD = Coordinate(950, 630)
+CHANNEL_25_COORD = Coordinate(950, 655)
+
+# CHANNEL COORDINATES
+CHANNEL_COORDINATES = [
+    Coordinate(960, 455),  # CHANNEL 1
+    Coordinate(960, 480),  # CHANNEL 2
+    Coordinate(960, 505),  # CHANNEL 3
+    Coordinate(960, 530),  # CHANNEL 4
+    Coordinate(960, 555),  # CHANNEL 5
+    Coordinate(960, 580),  # CHANNEL 6
+    Coordinate(960, 605),  # CHANNEL 7
+    Coordinate(960, 630),  # CHANNEL 8
+    Coordinate(960, 655),  # CHANNEL 9
+    Coordinate(960, 480),  # CHANNEL 10
+    Coordinate(960, 505),  # CHANNEL 11
+    Coordinate(960, 530),  # CHANNEL 12
+    Coordinate(960, 555),  # CHANNEL 13
+    Coordinate(960, 580),  # CHANNEL 14
+    Coordinate(960, 605),  # CHANNEL 15
+    Coordinate(960, 630),  # CHANNEL 16
+    Coordinate(960, 655),  # CHANNEL 17
+    Coordinate(960, 480),  # CHANNEL 18
+    Coordinate(960, 505),  # CHANNEL 19
+    Coordinate(960, 530),  # CHANNEL 20
+    Coordinate(960, 555),  # CHANNEL 21
+    Coordinate(960, 580),  # CHANNEL 22
+    Coordinate(960, 605),  # CHANNEL 23
+    Coordinate(960, 630),  # CHANNEL 24
+    Coordinate(960, 655),  # CHANNEL 25
 ]

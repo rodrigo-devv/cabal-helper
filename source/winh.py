@@ -45,11 +45,17 @@ class gWindow:
     def win_info(self):
         return win32gui.GetWindowRect(self.hwnd)
 
-    def resizeWindow(self, width=1024, height=768, x=0, y=0):
-        # Etapa 1: Mover e redimensionar a janela
+    def resizeWindow(self, width=1024, height=768, x=0, y=0, maximize=False):
         self.activeWindow()
-        win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
-        self.winRect()
+        if maximize:
+            # Etapa 2: Maximizar a janela
+            win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+            # Aguardar um segundo para garantir que a janela seja maximizada completamente
+            time.sleep(0.5)
+        else:
+            # Etapa 1: Mover e redimensionar a janela
+            win32gui.MoveWindow(self.hwnd, x, y, width, height, True)
+            self.winRect()
 
         version_info = platform.version()
 

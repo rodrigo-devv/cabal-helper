@@ -21,8 +21,7 @@ from source.inputs import Inputs as INP
 from config import config, attack_observer, CountdownConfig
 from source.winh import gWindow, find_all_windows, is_window_foreground
 
-set_appearance_mode("dark")
-set_default_color_theme("dark-blue")
+
 global run
 run = False
 gameWindow = config.windows
