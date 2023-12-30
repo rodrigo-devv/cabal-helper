@@ -1,7 +1,7 @@
 import os
 import ctypes
 import sys
-import time
+from time import sleep
 import yaml
 import keyboard
 import platform
@@ -22,8 +22,9 @@ from config import config, attack_observer, CountdownConfig
 from source.winh import gWindow, find_all_windows, is_window_foreground
 
 
-global run
+global run, must_relog
 run = False
+must_relog = False
 gameWindow = config.windows
 configuration = None
 countdown_instance = None
@@ -86,7 +87,7 @@ class Countdown:
         while self.run_countdown and self.total_seconds > 0:
             timer = datetime.timedelta(seconds=self.total_seconds)
             print(">", timer, " ⏱️", end="\r")
-            time.sleep(1)
+            sleep(1)
             self.total_seconds -= 1
 
         if self.total_seconds <= 0:
@@ -115,8 +116,8 @@ class Countdown:
 
 
 def on_zero_callback():
-    global run
-    run = True
+    global must_relog
+    must_relog = True
 
 
 def find_windows(debug=False):
@@ -141,8 +142,8 @@ def find_windows(debug=False):
 def watchdog():
     logged = False
     while True:
-        time.sleep(1)
-        if run:
+        sleep(1)
+        if must_relog:
             if logged:
                 logged = False
             logger("🚨 Bot: reloging")
@@ -157,8 +158,9 @@ def watchdog():
                 gameWindow[0].resizeWindow()
             if is_window_foreground(gameWindow[0].hwnd) != True:
                 gameWindow[0].activeWindow()
-            time.sleep(0.3)
-            relog()
+            sleep(0.3)
+            if must_relog:
+                relog()
 
 
 def toggle_attack():
@@ -186,57 +188,59 @@ def break_app(exception=None):
 
 
 def relog():
-    global countdown_instance
-    global run
+    global run, must_relog, countdown_instance
+    aero_bot = False
     relogado = False
     while not relogado:
-        time.sleep(0.5)
+        sleep(0.5)
         INP.sendKey("o")
-        time.sleep(1)
+        sleep(1)
         menu_open = uT.imgSearch(gameWindow[0].rect, data_info.MENU_TEXT,
                                  data_info.MENU_AREA, threshold=0.80, raw=True)
         if menu_open:
             INP.click("l", [514, 360])  # SELECIONAR SERVIDOR
-            time.sleep(0.5)
+            sleep(0.5)
             INP.click("l", [530, 473])
 
             while not relogado:
-                time.sleep(0.1)
+                sleep(0.1)
                 entrar_btn = uT.imgSearch(gameWindow[0].rect, data_info.ENTRAR_BTN,
                                           data_info.RELOG_BTNS, threshold=0.95, raw=True)
                 if entrar_btn:
                     INP.click("l", [946, 727])  # CLICA NO BTN ENTRAR
 
                     while not relogado:
-                        time.sleep(0.1)
+                        sleep(0.1)
                         character_screen = uT.imgSearch(gameWindow[0].rect, data_info.CHARACTER_LOCK,
                                                         data_info.CHARACTER_LOCK_AREA, threshold=0.93, raw=True)
                         if character_screen:
                             INP.click("l", [946, 727])  # CLICA COMECAR
-                            time.sleep(1)
+                            sleep(1)
                             if not sub_handle():
                                 return False
 
                             while not relogado:
-                                time.sleep(0.1)
+                                sleep(0.1)
                                 login_confirm = uT.imgSearch(gameWindow[0].rect, data_info.MAIN_GEM,
                                                              data_info.MAIN_BOTTOM_RIGHT_BAR, threshold=0.95, raw=True)
+                                INP.scrollDown(amount=12)
                                 if login_confirm:
                                     # CLICA NA ABA 2
-                                    INP.click("l", [339, 666])
-                                    INP.sendKey("f4")
+                                    if aero_bot:
+                                        INP.click("l", [339, 666])
+                                        INP.sendKey("f4")
 
                                     while not relogado:
-                                        time.sleep(0.5)
+                                        sleep(0.5)
                                         INP.sendKey("m")
-                                        time.sleep(0.5)
+                                        sleep(0.5)
                                         map_confirm = uT.imgSearch(gameWindow[0].rect, data_info.MAP_TEXT,
                                                                    gameWindow[0].rect, threshold=0.95, raw=True)
                                         if map_confirm:
                                             search_rect = [
                                                 map_confirm[0] - 130, map_confirm[1] + 124, map_confirm[0] + 112, map_confirm[1] + 215]
                                             while not relogado:
-                                                time.sleep(0.1)
+                                                sleep(0.1)
                                                 teleport_find = uT.imgSearch(gameWindow[0].rect, data_info.TELEPORT_ICON,
                                                                              search_rect, threshold=0.95, raw=True)
                                                 if teleport_find:
@@ -244,11 +248,14 @@ def relog():
                                                         "l", [teleport_find[0], teleport_find[1]])
                                                     relogado = True
                                                     break
-    time.sleep(1)
-    INP.mouse_drag([200, 545], [150, 455], 0.2, 25)
-    INP.sendKey("z")
-    time.sleep(0.2)
-    INP.sendKey("f1")
+    sleep(2)
+    if aero_bot:
+        INP.mouse_drag([200, 545], [150, 455], 0.2, 25)
+        INP.sendKey("z")
+        sleep(0.2)
+        INP.sendKey("f1")
+    else:
+        routes("seni-procy-premium")
     # Verifica se há uma instância de Countdown e se a configuração está carregada
     if countdown_instance and configuration and "countdown" in configuration:
         countdown_config = configuration["countdown"]
@@ -262,7 +269,7 @@ def relog():
         # Caso a configuração não esteja disponível, use os valores padrão
         countdown_instance = Countdown(1, 0, 0, on_zero_callback)
     logger("🤓 Relogado")
-    run = False
+    must_relog = False
     return True
 
 
@@ -274,7 +281,7 @@ def sub_handle(sub=None):
         window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.90, raw=True)
 
     if sub_window:
-        time.sleep(0.3)
+        sleep(0.3)
         logger("🔑 Inserindo sub-senha")
 
         sub_done = False
@@ -292,7 +299,7 @@ def sub_handle(sub=None):
         if sub_digited:
             fail_safe = 0
             while True:
-                time.sleep(0.1)
+                sleep(0.1)
                 INP.click("l", [628, 447])
                 check_sub_input = uT.imgSearch(
                     window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
@@ -311,7 +318,7 @@ def sub_handle(sub=None):
 
                     if number_found and number_found[0]:
                         INP.click("l", [number_found[0], number_found[1]])
-                        time.sleep(0.3)
+                        sleep(0.3)
                     else:
                         print(f"Número {digito_str} não encontrado.")
                 except Exception as e:
@@ -331,7 +338,7 @@ def sub_handle(sub=None):
                 window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
             if sub_digited:
                 INP.click("l", [455, 505])
-                time.sleep(1)
+                sleep(1)
                 while not sub_done:
                     sub_window = uT.imgSearch(
                         window, data_info.SUB_TEXT, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
@@ -353,9 +360,67 @@ def sub_handle(sub=None):
                         break
 
 
+def routes(route):
+    if route == "seni-procy-premium":
+        INP.moveMouse(35, 676)
+        sleep(0.2)
+        INP.sendKey("1", interval=0.75)
+        INP.sendKey("2", interval=0.55)
+        INP.sendKey("1", interval=0.75)
+        INP.sendKey("2", interval=0.55)
+        INP.moveMouse(203, 552)
+        sleep(0.2)
+        INP.sendKey("1", interval=0.75)
+        return
+
+
+def hunt():
+    target_on = False
+    while True:
+        sleep(0.2)
+        while config.attack and not must_relog:
+            target = uT.imgSearch(gameWindow[0].rect, data_info.TARGET_MOB_NORMAL,
+                                  data_info.TARGET_AREA, threshold=0.80, raw=True)
+            target_color = uT.pixelColor([387, 51])
+
+            if target:
+                target_on = True
+                while target_on:
+                    INP.sendKey("alt")
+                    # Search in target health bar
+                    color = uT.pixelColor([386, 51])
+                    if color == "0x1E1E1E":  # Target without health
+                        INP.sendKey("z")
+                    INP.sendKey("3")
+                    sleep(0.05)
+                    INP.sendKey("4")
+                    sleep(0.05)
+                    INP.sendKey("5")
+                    sleep(0.05)
+                    INP.sendKey("6")
+                    sleep(0.05)
+                    INP.sendKey("space")
+                    target = uT.imgSearch(gameWindow[0].rect, data_info.TARGET_MOB_NORMAL,
+                                          data_info.TARGET_AREA, threshold=0.80, raw=True)
+                    if not target:
+                        target_on = False
+                        break
+                    sleep(0.1)
+            elif target_color == "E22222":
+                print("Player Selected")
+                # TODO
+            else:
+                INP.click("m", [0, 0])
+                sleep(0.1)
+                print("Hunting")
+            sleep(0.05)
+
+
 def testes():
     logger("💻 Test acionado")
-    time.sleep(1)
+    sleep(1)
+    INP.scrollDown(amount=12)
+    routes("seni-procy-premium")
 
 
 if __name__ == '__main__':
@@ -373,4 +438,7 @@ if __name__ == '__main__':
     # gui_thread.start()
 
     threading.Thread(target=watchdog, args=()).start()
+    threading.Thread(target=hunt, args=()).start()
     # testes()
+
+    run = True

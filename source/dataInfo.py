@@ -39,6 +39,7 @@ Coordinate = namedtuple('Coordinate', 'x y')
 
 # AREAS
 MENU_AREA = Area(456, 255, 556, 314)
+TARGET_AREA = Area(351, 34, 395, 70)
 MENU_AREA_HD = Area(720, 332, 1179, 704)  # 1920-1080
 CHANNEL_WAR_AREA = Area(763, 428, 1150, 490)  # 1920-1080
 CHANNEL_LIST_AREA = Area(765, 430, 975, 600)  # 1920-1080
@@ -60,6 +61,7 @@ S_BUFF5 = "f8"
 # IMAGES
 MENU_TEXT = images['option_menu']
 MENU_CANAL = images['canal_menu']
+TARGET_MOB_NORMAL = images['selected_mob_normal']
 MENU_CANAL_CONFIRM = images['canal_menu_confirm']
 CHANNEL_WAR_TEXT = images['canal_war']
 CHANNEL_WAR_TEXT_RED = images['canal_war_red']

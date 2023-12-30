@@ -1,7 +1,9 @@
 import random
 import time
 import pydirectinput as pdt
+from pynput.mouse import Controller
 import source.actions as Action
+import keyboard
 
 from config import config
 from win32 import win32api
@@ -13,37 +15,57 @@ window = config.windows
 class Inputs:
     @classmethod
     def click(cls, btn, coord, downTime=0.1, debug=False, fast=False):
-        xC = coord[0]
-        yC = coord[1]
-        cls.moveMouse(xC, yC, r=0)
+        xC, yC = coord
+        if not btn == "m":
+            cls.moveMouse(xC, yC, r=0)
+
         if btn == "l":
             if debug:
-                print("Left click in : ", xC, yC)
+                print("Left click in:", xC, yC)
             win32api.mouse_event(wcon.MOUSEEVENTF_LEFTDOWN, 0, 0)
             time.sleep(downTime)
             win32api.mouse_event(wcon.MOUSEEVENTF_LEFTUP, 0, 0)
-        else:
+        elif btn == "r":
             win32api.mouse_event(wcon.MOUSEEVENTF_RIGHTDOWN, 0, 0)
             time.sleep(downTime)
             win32api.mouse_event(wcon.MOUSEEVENTF_RIGHTUP, 0, 0)
+        elif btn == "m":
+            win32api.mouse_event(wcon.MOUSEEVENTF_MIDDLEDOWN, 0, 0)
+            time.sleep(downTime)
+            win32api.mouse_event(wcon.MOUSEEVENTF_MIDDLEUP, 0, 0)
+        else:
+            raise ValueError(
+                "Botão inválido. Use 'l' para esquerdo, 'r' para direito, ou 'm' para o meio.")
 
         if not fast:
             time.sleep(0.2)
 
     @classmethod
     def moveMouse(cls, x, y, r=0):
+        win32api.SetCursorPos((x + r, y + r))
+
+    @classmethod
+    def moveMouseRandom(cls, x, y, r=0):
         left, top, right, bottom = window[0].rect
         realX, realY = left + x, top + y
         win32api.SetCursorPos(
             (cls.addRandomness(realX, r), cls.addRandomness(realY, r)))
 
     @staticmethod
-    def sendKey(button: str, times: int = 1, fast: bool = False) -> None:
+    def scrollDown(amount: int = 1, interval: float = 0.05) -> None:
+        mouse = Controller()
+        for _ in range(amount):
+            mouse.scroll(0, -1)
+            time.sleep(interval)
+
+    @staticmethod
+    def sendKey(button: str, times: int = 1, interval: float = 0) -> None:
+        # Certifique-se de que a janela está ativa antes de enviar as teclas
         window[0].activeWindow()
+
         for _ in range(times):
-            pdt.keyDown(button)
-            time.sleep(0.001)
-            pdt.keyUp(button)
+            keyboard.press_and_release(button)
+            time.sleep(interval)
 
     @classmethod
     def mouse_drag(cls, start_coord, end_coord, drag_time, loop_count=1, loop_interval=0.05, debug=False):
