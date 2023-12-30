@@ -9,9 +9,7 @@ import threading
 import datetime
 from customtkinter import *
 from interface import run_gui
-
 import pydirectinput as pdi
-
 import source.uTools as uT
 import source.actions as Action
 import source.dataInfo as data_info
