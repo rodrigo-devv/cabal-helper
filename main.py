@@ -6,6 +6,7 @@ import yaml
 import keyboard
 import platform
 import threading
+from threading import Timer
 import datetime
 from customtkinter import *
 from interface import run_gui
@@ -75,11 +76,15 @@ class Countdown:
         self.total_seconds = h * 3600 + m * 60 + s
         self.on_zero_callback = on_zero_callback
         self.run_countdown = True
-        self.countdown_thread = threading.Thread(target=self._start_countdown)
-        self.countdown_thread.start()
+        self.timer = None
 
         # Atualiza o CountdownConfig com os valores iniciais
         self.update_config()
+        self.start_countdown()
+
+    def start_countdown(self):
+        self.timer = Timer(1, self._start_countdown)
+        self.timer.start()
 
     def _start_countdown(self):
         while self.run_countdown and self.total_seconds > 0:
@@ -94,8 +99,7 @@ class Countdown:
     def restart_countdown(self, h, m, s):
         self.total_seconds = h * 3600 + m * 60 + s
         self.run_countdown = True
-        self.countdown_thread = threading.Thread(target=self._start_countdown)
-        self.countdown_thread.start()
+        self.start_countdown()
 
         # Atualiza o CountdownConfig ao reiniciar o Countdown
         self.update_config()
@@ -116,6 +120,7 @@ class Countdown:
 def on_zero_callback():
     global must_relog
     must_relog = True
+    relog()
 
 
 def find_windows(debug=False):
@@ -157,10 +162,8 @@ def watchdog():
             if is_window_foreground(gameWindow[0].hwnd) != True:
                 gameWindow[0].activeWindow()
             sleep(0.3)
-            if config.attack:
+            if config.attack and not must_relog:
                 hunt()
-            if must_relog:
-                relog()
 
 
 def toggle_attack():
