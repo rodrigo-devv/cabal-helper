@@ -157,6 +157,8 @@ def watchdog():
             if is_window_foreground(gameWindow[0].hwnd) != True:
                 gameWindow[0].activeWindow()
             sleep(0.3)
+            if config.attack:
+                hunt()
             if must_relog:
                 relog()
 
@@ -374,7 +376,7 @@ def routes(route):
 
 def hunt():
     target_on = False
-    while True:
+    while config.attack and not must_relog:
         sleep(0.2)
         while config.attack and not must_relog:
             target = uT.imgSearch(gameWindow[0].rect, data_info.TARGET_MOB_NORMAL,
@@ -406,11 +408,11 @@ def hunt():
                     sleep(0.1)
             elif target_color == "E22222":
                 print("Player Selected")
+                sleep(2)
                 # TODO
             else:
                 INP.click("m", [0, 0])
                 sleep(0.1)
-                print("Hunting")
             sleep(0.05)
 
 
@@ -436,7 +438,7 @@ if __name__ == '__main__':
     # gui_thread.start()
 
     threading.Thread(target=watchdog, args=()).start()
-    threading.Thread(target=hunt, args=()).start()
+    # threading.Thread(target=hunt, args=()).start()
     # testes()
 
     run = True
