@@ -157,10 +157,10 @@ def watchdog():
 
         while run:
             game_info = gameWindow[0].win_info()
-            if game_info[0] or game_info[1]:
+            """ if game_info[0] or game_info[1]:
                 gameWindow[0].resizeWindow()
             if is_window_foreground(gameWindow[0].hwnd) != True:
-                gameWindow[0].activeWindow()
+                gameWindow[0].activeWindow() """
             sleep(0.3)
             if config.attack and not must_relog:
                 hunt()
@@ -192,7 +192,7 @@ def break_app(exception=None):
 
 def relog():
     global run, must_relog, countdown_instance
-    aero_bot = False
+    aero_bot = True
     relogado = False
     while not relogado:
         sleep(0.5)
@@ -305,7 +305,7 @@ def sub_handle(sub=None):
                 sleep(0.1)
                 INP.click("l", [628, 447])
                 check_sub_input = uT.imgSearch(
-                    window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.95, raw=True)
+                    window, data_info.SUB_FILL, data_info.SUB_PAD_AREA, threshold=0.90, raw=True)
                 if not check_sub_input:
                     break
                 fail_safe += 1
@@ -317,11 +317,11 @@ def sub_handle(sub=None):
             if numero_atual is not None:
                 try:
                     number_found = uT.imgSearch(
-                        window, numero_atual, data_info.SUB_PAD_AREA, threshold=0.90, raw=True)
+                        window, numero_atual, data_info.SUB_PAD_AREA, threshold=0.85, raw=True)
 
                     if number_found and number_found[0]:
                         INP.click("l", [number_found[0], number_found[1]])
-                        sleep(0.3)
+                        sleep(0.5)
                     else:
                         print(f"Número {digito_str} não encontrado.")
                 except Exception as e:
